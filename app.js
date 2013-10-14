@@ -109,6 +109,7 @@ function start_app() {
 	
 	var server = bouncy(function (req, res, bounce) {
 		try {
+			var port = get_port(req, res);
 			bounce(port);
 		} catch(e) {
 			writelog("Error: " + e);
