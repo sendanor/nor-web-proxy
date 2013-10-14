@@ -3,13 +3,15 @@
   "version": "0.0.1",
   "description": "Simple web proxy for custom setup",
   "main": "app.js",
+  "bin" : { "nor-web-proxy" : "./ctrl.js" },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "dependencies":{
-    "getent": "*",
-    "node-proxy": "*",
-    "tld": "*"
+    "getent": "0.1.*",
+    "http-proxy": "nodejitsu/node-http-proxy#caronte",
+    "tld": "*",
+    "daemonize2": "*"
   },
   "author": "Jaakko-Heikki Heusala <jheusala@iki.fi>",
   "license": "MIT"
