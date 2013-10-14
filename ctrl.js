@@ -1,19 +1,22 @@
 #!/usr/bin/env node
 /* */
+var util = require('util');
 var proxy_dir = process.env.VARDIR || '/var';
-var proxy_logdir = process.env.LOGDIR || proxy_dir+'/log';
 var proxy_rundir = process.env.RUNDIR || proxy_dir+'/run';
 var proxy_pid = process.env.PIDFILE || proxy_rundir + '/node-proxy.pid';
 
 var daemon = require("daemonize2").setup({
 	main: __dirname + "/app.js",
-	name: "node-proxy",
-	pidfile: proxy_pid
+	name: "nor-web-proxy",
+	pidfile: proxy_pid,
+    silent: true
 });
 
 switch (process.argv[2]) {
 	case "start": 
-		daemon.start().once("started", function() {
+		daemon.start().once("error", function(error) {
+			util.error("Error: " + error);
+		}).once("started", function() {
 			process.exit();
 		});
 		break;

@@ -16,29 +16,55 @@ var http = require('http');
 var httpProxy = require('http-proxy');
 var getent = require('getent');
 
+var fs = require("fs");
+
+var logStream = openLog(proxy_log);
+
+function openLog(logfile) {
+	return fs.createWriteStream(logfile, {
+		flags: "a", encoding: "utf8", mode: 0644
+	});
+}
+
+function writelog(msg) {
+	logStream.write(msg + "\n");
+}
+
 function start_app() {
 	var proxy = httpProxy.createProxyServer({});
 
 	process.chdir("/");
 
 	var server = http.createServer(function (req, res) {
-		var domain = tld.registered(req.host);
-		var group = domain.replace(/\./g, '_').toLowerCase();
-		var g = getent.group(group);
-		var port = 7000 + g.gid;
-		proxy.web(req, res, {
-			host: 'www1.sendanor.com',
-			port: port
-		});
+		try {
+			var domain = tld.registered(req.host);
+			var group = domain.replace(/\./g, '_').toLowerCase();
+			var g = getent.group(group);
+			var port = 7000 + g.gid;
+			proxy.web(req, res, {
+				host: 'www1.sendanor.com',
+				port: port
+			});
+		} catch(e) {
+			writelog("Error: " + e);
+		}
 	}).listen(proxy_port, proxy_host, function() {
-		if (process.getuid() === 0) {
-			process.initgroups(proxy_user, proxy_group);
-			process.setgid(proxy_group);
-			process.setuid(proxy_user);
+		try {
+			if (process.getuid() === 0) {
+				process.initgroups(proxy_user, proxy_group);
+				process.setgid(proxy_group);
+				process.setuid(proxy_user);
+			}
+		} catch(e) {
+			writelog("Error: " + e);
 		}
 	});
 }
-
-start_app();
+	
+try {
+	start_app();
+} catch(e) {
+	writelog("Error: " + e);
+}
 
 /* EOF */
