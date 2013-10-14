@@ -6,8 +6,8 @@ var proxy_port = process.env.PORT || 80;
 var proxy_dir = process.env.VARDIR || '/var';
 var proxy_logdir = process.env.LOGDIR || proxy_dir+'/log';
 var proxy_rundir = process.env.RUNDIR || proxy_dir+'/run';
-var proxy_pid = process.env.PIDFILE || proxy_rundir + '/node-proxy.pid';
-var proxy_log = process.env.LOGFILE || proxy_logdir + '/node-proxy.log';
+var proxy_pid = process.env.PIDFILE || proxy_rundir + '/nor-web-proxy.pid';
+var proxy_log = process.env.LOGFILE || proxy_logdir + '/nor-web-proxy.log';
 var proxy_user = process.env.PROXY_USER || "www-data";
 var proxy_group = process.env.PROXY_GROUP || "www-data";
 
@@ -37,16 +37,14 @@ function start_app() {
 
 	var server = http.createServer(function (req, res) {
 		try {
-			var domain = tld.registered(req.host);
+			var domain = tld.registered(''+req.headers.host);
 			var group = domain.replace(/\./g, '_').toLowerCase();
 			var g = getent.group(group);
 			var port = 7000 + g.gid;
-			proxy.web(req, res, {
-				host: 'www1.sendanor.com',
-				port: port
-			});
+			proxy.web(req, res, { target:'http://127.0.0.1:' + port });
 		} catch(e) {
 			writelog("Error: " + e);
+			if(e.stack) { writelog("" + e.stack); }
 		}
 	}).listen(proxy_port, proxy_host, function() {
 		try {
@@ -57,6 +55,7 @@ function start_app() {
 			}
 		} catch(e) {
 			writelog("Error: " + e);
+			if(e.stack) { writelog("" + e.stack); }
 		}
 	});
 }
@@ -65,6 +64,7 @@ try {
 	start_app();
 } catch(e) {
 	writelog("Error: " + e);
+	if(e.stack) { writelog("" + e.stack); }
 }
 
 /* EOF */
