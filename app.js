@@ -41,7 +41,8 @@ function start_app() {
 			var group = domain.replace(/\./g, '_').toLowerCase();
 			var g = getent.group(group);
 			var port = 7000 + g.gid;
-			proxy.web(req, res, { target:'http://127.0.0.1:' + port });
+			proxy.web(req, res, { forward: 'http://127.0.0.1:' + port }, function() {
+			});
 		} catch(e) {
 			writelog("Error: " + e);
 			if(e.stack) { writelog("" + e.stack); }
