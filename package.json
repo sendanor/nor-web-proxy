@@ -9,7 +9,7 @@
   },
   "dependencies":{
     "getent": "0.1.*",
-    "http-proxy": "nodejitsu/node-http-proxy#caronte",
+    "bouncy": "*",
     "tld": "*",
     "daemonize2": "*"
   },
