@@ -73,13 +73,13 @@ function start_app() {
 	var server = bouncy(function (req, res, bounce) {
 		try {
 			var domain = tld.registered(''+req.headers.host);
-			writelog("domain =" + util.inspect(domain) );
+			//writelog("domain =" + util.inspect(domain) );
 			var group = domain.replace(/\./g, '_').toLowerCase();
-			writelog("group =" + util.inspect(group) );
+			//writelog("group =" + util.inspect(group) );
 			var g = getent.group(group).shift();
-			writelog("g =" + util.inspect(g) );
+			//writelog("g =" + util.inspect(g) );
 			var port = 7000 + g.gid;
-			writelog("Forwarding to " + port);
+			//writelog("Forwarding to " + port);
 			bounce(port);
 		} catch(e) {
 			writelog("Error: " + e);
