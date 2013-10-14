@@ -14,7 +14,7 @@ var proxy_group = process.env.PROXY_GROUP || "www-data";
 var util = require('util');
 var tld = require('tld');
 var http = require('http');
-var httpProxy = require('http-proxy');
+//var httpProxy = require('http-proxy');
 var getent = require('getent');
 
 var fs = require("fs");
