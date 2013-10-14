@@ -31,6 +31,43 @@ function writelog(msg) {
 	logStream.write(msg + "\n");
 }
 
+var _cache = {};
+
+function get_domain(host) {
+	return tld.registered(host);
+}
+
+function get_group(domain) {
+	return domain.replace(/\./g, '_').toLowerCase();
+}
+
+function get_gid(group) {
+	var g = getent.group(group).shift();
+	return g.gid;
+}
+
+function get_port(req, res) {
+	var host = ''+req.headers.host;
+
+	if(typeof _cache['byhost_'+host] === 'number') {
+		return _cache['byhost_'+host];
+	}
+
+	var domain = get_domain(host);
+
+	if(typeof _cache['bydomain_'+domain] === 'number') {
+		return _cache['bydomain_'+domain];
+	}
+
+	var group = get_group(domain);
+	var port = 7000 + get_gid(group);
+
+	_cache['bydomain_'+domain] = port;
+	_cache['byhost_'+host] = port;
+
+	return port;
+}
+
 function start_app() {
 
 	/*
@@ -72,14 +109,6 @@ function start_app() {
 	
 	var server = bouncy(function (req, res, bounce) {
 		try {
-			var domain = tld.registered(''+req.headers.host);
-			//writelog("domain =" + util.inspect(domain) );
-			var group = domain.replace(/\./g, '_').toLowerCase();
-			//writelog("group =" + util.inspect(group) );
-			var g = getent.group(group).shift();
-			//writelog("g =" + util.inspect(g) );
-			var port = 7000 + g.gid;
-			//writelog("Forwarding to " + port);
 			bounce(port);
 		} catch(e) {
 			writelog("Error: " + e);
