@@ -125,7 +125,7 @@ function start_httpProxy() {
 			var port = get_port(req, res);
 			var url = 'http://127.0.0.1:' + port;
 			writelog('Forwarding ' + util.inspect(req.headers.host) + ' to ' + util.inspect(url) );
-			proxy.web(req, res, { target: url });
+			proxy.web(req, res, { forward: url });
 		} catch(e) {
 			writelog("Error: " + e);
 			if(e.stack) { writelog("" + e.stack); }
