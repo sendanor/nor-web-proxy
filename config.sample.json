@@ -1,0 +1,10 @@
+{
+  "hosts": {
+    "zeta3-lts-local": 3000,
+    "zeta3-lts-local:3001": 3000
+  },
+  "domains": {
+  },
+  "gids": {
+  }
+}

@@ -6,9 +6,15 @@ var path = require('path');
 var util = require('util');
 var http = require('http');
 var fs = require("fs");
+var nor_fs = require("nor-fs");
 var tld = require('tld');
 var getent = require('getent');
 var debug = require('./debug.js');
+
+var _config_file = process.env.NOR_WEB_PROXY_CONFIG || '/etc/nor-web-proxy.json';
+var _config = {
+	'hosts': {}
+};
 
 var _proxy_host = process.env.HOST || '0.0.0.0';
 var _proxy_default_hostname = process.env.HOSTNAME || 'example.com';
@@ -66,7 +72,7 @@ function get_gid(group) {
 		writelog('Warning! group is not string: ' + util.inspect(group) + " [at "+__filename+":"+ debug.__line +"]" );
 	}
 	var g = getent.group(group).shift();
-	if(typeof g.gid !== 'number') {
+	if(!(g && (typeof g.gid === 'number'))) {
 		writelog('Warning! g.gid is not number: ' + util.inspect(g.gid) + " [at "+__filename+":"+ debug.__line +"]" );
 	}
 	return g.gid;
@@ -83,23 +89,28 @@ function get_port(req, res) {
 		host = _proxy_default_hostname;
 	}
 
+	if(_config.hosts && (typeof _config.hosts[host] === 'number')) {
+		return _config.hosts[host];
+	}
+
 	if(typeof _cache['byhost_'+host] === 'number') {
 		return _cache['byhost_'+host];
 	}
 
 	var domain = get_domain(host);
 
-	if(typeof _cache['bydomain_'+domain] === 'number') {
-		return _cache['bydomain_'+domain];
+	if(_config.domains && (typeof _config.domains[domain] === 'number')) {
+		return _cache['byhost_'+host] = _config.domains[domain];
 	}
 
 	var group = get_group(domain);
-	var port = 7000 + get_gid(group);
+	var gid = get_gid(group);
 
-	_cache['bydomain_'+domain] = port;
-	_cache['byhost_'+host] = port;
+	if(_config.gids && (typeof _config.gids[gid] === 'number')) {
+		return _cache['byhost_'+host] = _config.gids[gid];
+	}
 
-	return port;
+	return _cache['byhost_'+host] = 7000 + gid;
 }
 
 /** Drop privileges */
@@ -155,6 +166,14 @@ function start_bouncy() {
 }
 
 try {
+	if(nor_fs.sync.exists(_config_file)) {
+		_config = JSON.parse(nor_fs.sync.readFile(_config_file, {'encoding':'utf8'}));
+	}
+
+	if(!_config.hosts) { _config.hosts = {}; }
+	if(!_config.domains) { _config.domains = {}; }
+	if(!_config.gids) { _config.gids = {}; }
+
 	process.chdir("/");
 
 	if(argv.bouncy) {
